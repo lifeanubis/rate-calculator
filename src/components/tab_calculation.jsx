@@ -225,10 +225,28 @@ export default function GadiRateCalculator() {
   };
 
   function generateFullScreenPDF() {
-    html2canvas(document.body, {
+    const element = document.querySelector('.container');
+    const pageWidth = Math.max(
+      document.documentElement.scrollWidth,
+      document.body.scrollWidth,
+      element?.scrollWidth || 0,
+    );
+    const pageHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight,
+      element?.scrollHeight || 0,
+    );
+
+    html2canvas(element || document.body, {
       useCORS: true, // Ensures cross-origin images are captured
       backgroundColor: '#ffffff',
       scale: 2, // Improves resolution
+      width: pageWidth,
+      height: pageHeight,
+      windowWidth: pageWidth,
+      windowHeight: pageHeight,
+      scrollX: 0,
+      scrollY: 0,
       onclone: (clonedDocument) => {
         clonedDocument.documentElement.style.backgroundColor = '#ffffff';
         clonedDocument.body.style.backgroundColor = '#ffffff';
@@ -251,10 +269,22 @@ export default function GadiRateCalculator() {
         format: 'a4',
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfWidth = pdf.internal.pageSize.getWidth() / 1.5;
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
       pdf.save('full-screen.pdf');
     });
   }
@@ -265,6 +295,7 @@ export default function GadiRateCalculator() {
 
       {/* Tabs */}
       <div className="tabs">
+        {/* <div> */}
         {Object.keys(vehicleConfigs).map((tab) => (
           <button
             key={tab}
@@ -278,8 +309,10 @@ export default function GadiRateCalculator() {
             {tab}
           </button>
         ))}
+      </div>
+      <div>
         <button className="tabs-button" onClick={generateFullScreenPDF}>
-          Download as PDF
+          Download PDF
         </button>
       </div>
       {/* Inputs */}

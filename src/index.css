@@ -124,16 +124,8 @@ code {
   background-color: #2e303a;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  width: 100%;
+  /* width: 100%; */
   border-radius: 0.5rem;
-}
-@media (width <= 1024px) {
-  .form-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
-    border-radius: 0.5rem;
-  }
 }
 .form-inputs {
   padding: 0.5rem 0 0.5rem 0;
@@ -164,4 +156,15 @@ code {
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+}
+
+@media (width <= 1200px) {
+  .container {
+    width: 80vw;
+    overflow-x: hidden;
+  }
+  .form-container {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 }
