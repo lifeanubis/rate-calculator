@@ -229,7 +229,7 @@ export default function GadiRateCalculator() {
 
   return (
     <div className="container">
-      <h1>Gadi Rate Calculator</h1>
+      <h2>Gadi Rate Calculator</h2>
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -247,39 +247,40 @@ export default function GadiRateCalculator() {
           </button>
         ))}
       </div>
-      <hr />
       {/* Inputs */}
       {/* PURCHASE */}
-      <h1>Purchase</h1>
 
       <div>
-        <h1>
+        <hr className="" />
+
+        <h2>Purchase</h2>
+        <h2>
           {activeTab === '35MT' &&
-            `Total Purchase ₹ ₹ ${calculations.totalPurchase.toFixed(2)}`}
-        </h1>
-        <h1>
+            `Total Purchase ₹ ${calculations.totalPurchase.toFixed(2)}`}
+        </h2>
+        <h2>
           {activeTab === '6MT' &&
             `Final Rate ₹ ${calculations.finalRate06MT.toFixed(2)}`}
-        </h1>
+        </h2>
 
-        <h2>
+        <h3>
           {activeTab === '15MT' &&
             ` | Net rate ₹ ${calculations.netRate.toFixed(2)}`}
-        </h2>
+        </h3>
 
-        <h2>
+        <h3>
           {activeTab === '15MT' &&
             ` | Per KG Rate ₹ ${calculations.perKgRate.toFixed(2)}`}
-        </h2>
+        </h3>
 
-        <h2>
+        <h3>
           {activeTab === '6MT' &&
             ` | Landing Cost ₹ ${calculations.landingCost.toFixed(2)}`}
-        </h2>
-        <h2>
+        </h3>
+        <h3>
           {activeTab === '6MT' &&
             `| Final Rate/kg ₹ ${(calculations.finalRate06MT / 1000).toFixed(2)}`}
-        </h2>
+        </h3>
 
         <div className="form-container">
           {Object.entries(currentFields).map(([field, value]) => (
@@ -299,35 +300,37 @@ export default function GadiRateCalculator() {
 
       {/* Sell */}
       <div>
-        <h1>
+        <hr />
+
+        <h2>Sell</h2>
+
+        <h2>
           {activeTab === '35MT' &&
             `Total Sell ₹ ${calculationsSell.totalSell.toFixed(2)}`}
-        </h1>
-        <h2>
+        </h2>
+        <h3>
           {activeTab === '15MT' &&
             ` | Net rate ₹ ${calculationsSell.netRate.toFixed(2)}`}
-        </h2>
+        </h3>
 
-        <h2>
+        <h3>
           {activeTab === '15MT' &&
             ` | Per KG Rate ₹ ${calculationsSell.perKgRate.toFixed(2)}`}
-        </h2>
-        <hr />
-        <h1>Sell</h1>
-        <h1>
+        </h3>
+        <h2>
           {activeTab === '6MT' &&
             ` | Landing Cost ₹ ${calculationsSell.landingCost.toFixed(2)}`}
-        </h1>
-
-        <h2>
-          {activeTab === '6MT' &&
-            ` | Landing Cost ₹ ${calculationsSell.finalRate06MT.toFixed(2)}`}
         </h2>
 
-        <h2>
+        <h3>
+          {activeTab === '6MT' &&
+            ` | Final Rate ₹ ${calculationsSell.finalRate06MT.toFixed(2)}`}
+        </h3>
+
+        <h3>
           {activeTab === '6MT' &&
             `| Final Rate/kg ₹ ${(calculationsSell.finalRate06MT / 1000).toFixed(2)}`}
-        </h2>
+        </h3>
         <div className="form-container">
           {Object.entries(currentFieldsSell).map(([fieldsSell, value]) => (
             <div key={fieldsSell} className="form-inputs">
@@ -344,25 +347,10 @@ export default function GadiRateCalculator() {
         </div>
       </div>
       {/* Sell */}
-      <h1>
+      <h2>
         {activeTab === '35MT' &&
           `Profit ₹ ${(calculationsSell.totalSell - calculations.totalPurchase).toFixed(2)}`}
-      </h1>
-
-      {/* Results */}
-      <div style={styles.results}>
-        <h2>Results</h2>
-
-        {/* <ResultRow label="Taxable Amount" value={calculations.taxableAmount} />
-
-        <ResultRow label="GST Amount" value={calculations.gstAmount} />
-
-        <ResultRow label="Total With GST" value={calculations.totalWithGST} />
-
-        <ResultRow label="Final Rate" value={calculations.finalRate} />
-
-        <ResultRow label="Per KG Rate" value={calculations.perKgRate} /> */}
-      </div>
+      </h2>
     </div>
   );
 }
