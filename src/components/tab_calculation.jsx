@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const vehicleConfigs = {
   '35MT': {
@@ -89,7 +91,6 @@ export default function GadiRateCalculator() {
     let netRate;
     let landingCost;
     let finalRate06MT;
-    // = taxableAmount + gstAmount + currentFields.token;
 
     if (activeTab === '35MT') {
       totalWithGST = taxableAmount + gstAmount + currentFields.token;
@@ -141,7 +142,7 @@ export default function GadiRateCalculator() {
 
   const calculationsSell = useMemo(() => {
     const taxableAmount =
-      currentFieldsSell.basic -
+      currentFields.basic -
       currentFieldsSell.discount +
       currentFieldsSell.loading;
 
@@ -196,11 +197,7 @@ export default function GadiRateCalculator() {
       landingCost,
       finalRate06MT,
     };
-  }, [activeTab, currentFieldsSell]);
-
-  // 15 MT
-
-  // 15 MT
+  }, [activeTab, currentFields.basic, currentFieldsSell]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({
@@ -227,18 +224,53 @@ export default function GadiRateCalculator() {
     }));
   };
 
+  function generateFullScreenPDF() {
+    html2canvas(document.body, {
+      useCORS: true, // Ensures cross-origin images are captured
+      backgroundColor: '#ffffff',
+      scale: 2, // Improves resolution
+      onclone: (clonedDocument) => {
+        clonedDocument.documentElement.style.backgroundColor = '#ffffff';
+        clonedDocument.body.style.backgroundColor = '#ffffff';
+
+        clonedDocument
+          .querySelectorAll(
+            '.container, .form-container, h1, h2, h3, label, p, li, span',
+          )
+          .forEach((node) => {
+            node.style.color = '#000000';
+            node.style.backgroundColor = '#ffffff';
+            node.style.webkitTextFillColor = '#000000';
+          });
+      },
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('full-screen.pdf');
+    });
+  }
+
   return (
     <div className="container">
       <h2>Gadi Rate Calculator</h2>
 
       {/* Tabs */}
-      <div style={styles.tabs}>
+      <div className="tabs">
         {Object.keys(vehicleConfigs).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
+            className="tabs-button"
             style={{
-              ...styles.tabButton,
               background: activeTab === tab ? '#111' : '#ddd',
               color: activeTab === tab ? '#fff' : '#000',
             }}
@@ -246,13 +278,15 @@ export default function GadiRateCalculator() {
             {tab}
           </button>
         ))}
+        <button className="tabs-button" onClick={generateFullScreenPDF}>
+          Download as PDF
+        </button>
       </div>
       {/* Inputs */}
       {/* PURCHASE */}
 
       <div>
-        <hr className="" />
-
+        <hr />
         <h2>Purchase</h2>
         <h2>
           {activeTab === '35MT' &&
@@ -326,24 +360,38 @@ export default function GadiRateCalculator() {
           {activeTab === '6MT' &&
             ` | Final Rate ₹ ${calculationsSell.finalRate06MT.toFixed(2)}`}
         </h3>
-
         <h3>
           {activeTab === '6MT' &&
             `| Final Rate/kg ₹ ${(calculationsSell.finalRate06MT / 1000).toFixed(2)}`}
         </h3>
         <div className="form-container">
-          {Object.entries(currentFieldsSell).map(([fieldsSell, value]) => (
-            <div key={fieldsSell} className="form-inputs">
-              <label className="labels">{formatLabel(fieldsSell)}</label>
-              <input
-                type="number"
-                value={value}
-                onChange={(e) => updateFieldSell(fieldsSell, e.target.value)}
-                className="input"
-                // style={styles.input}
-              />
-            </div>
-          ))}
+          {Object.entries(currentFields)
+            ?.splice(0, 1)
+            ?.map(([field, value]) => (
+              <div key={field} className="form-inputs">
+                <label className="labels">{formatLabel(field)}</label>
+                <input
+                  type="number"
+                  value={value}
+                  onChange={(e) => updateField(field, e.target.value)}
+                  className="input"
+                  // style={styles.input}
+                />
+              </div>
+            ))}
+          {Object.entries(currentFieldsSell)
+            ?.splice(1)
+            ?.map(([fieldsSell, value]) => (
+              <div key={fieldsSell} className="form-inputs">
+                <label className="labels">{formatLabel(fieldsSell)}</label>
+                <input
+                  type="number"
+                  value={value}
+                  onChange={(e) => updateFieldSell(fieldsSell, e.target.value)}
+                  className="input"
+                />
+              </div>
+            ))}
         </div>
       </div>
       {/* Sell */}
@@ -355,33 +403,8 @@ export default function GadiRateCalculator() {
   );
 }
 
-function ResultRow({ label, value }) {
-  return (
-    <div style={styles.resultRow}>
-      <span>{label}</span>
-      <strong>₹ {value.toFixed(2)}</strong>
-    </div>
-  );
-}
-
 function formatLabel(label) {
   return label
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase());
 }
-
-const styles = {
-  tabs: {
-    display: 'flex',
-    gap: '10px',
-    marginBottom: '20px',
-  },
-
-  tabButton: {
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
-};

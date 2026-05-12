@@ -124,7 +124,6 @@ code {
   background-color: #2e303a;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* gap: 0.2rem; */
   width: 100%;
   border-radius: 0.5rem;
 }
@@ -144,11 +143,25 @@ code {
 }
 .input {
   padding: 0.5rem;
+  font-size: 1.5rem;
 }
 
 .labels {
   margin: 0.5rem 0 0 1rem;
   font-weight: 600;
-  /* background-color: red; */
   text-align: left;
+  font-size: 1.5rem;
+}
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.tabs-button {
+  font-size: 1.5rem;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
 }
