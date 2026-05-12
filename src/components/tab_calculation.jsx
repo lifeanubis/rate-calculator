@@ -350,7 +350,7 @@ export default function GadiRateCalculator() {
               value={globalBasic}
               onChange={(e) => {
                 setGlobalBasic(parseFloat(e.target.value));
-                updateField('basic', e.target.value);
+                // updateField('basic', e.target.value);
               }}
               className="input"
             />
@@ -411,7 +411,7 @@ export default function GadiRateCalculator() {
               value={globalBasic}
               onChange={(e) => {
                 setGlobalBasic(parseFloat(e.target.value));
-                updateField('basic', e.target.value);
+                // updateField('basic', e.target.value);
               }}
               className="input"
             />
