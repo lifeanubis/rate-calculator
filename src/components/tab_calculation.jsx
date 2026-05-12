@@ -5,14 +5,12 @@ import html2canvas from 'html2canvas';
 const vehicleConfigs = {
   '35MT': {
     fields: {
-      basic: 39211,
       discount: 3000,
       loading: 5880,
       gst: 18,
       token: 500,
     },
     fieldsSell: {
-      basic: 39211,
       discount: 2500,
       loading: 5880,
       gst: 18,
@@ -22,7 +20,6 @@ const vehicleConfigs = {
 
   '15MT': {
     fields: {
-      basic: 39211,
       discount: 3000,
       loading: 5880,
       gst: 18,
@@ -32,7 +29,6 @@ const vehicleConfigs = {
       margin: 0,
     },
     fieldsSell: {
-      basic: 39211,
       discount: 2500,
       loading: 5880,
       gst: 18,
@@ -45,7 +41,6 @@ const vehicleConfigs = {
 
   '6MT': {
     fields: {
-      basic: 40711,
       discount: 3000,
       loading: 5880,
       gst: 18,
@@ -58,7 +53,6 @@ const vehicleConfigs = {
       margin: 0,
     },
     fieldsSell: {
-      basic: 40711,
       discount: 2500,
       loading: 5880,
       gst: 18,
@@ -75,6 +69,7 @@ const vehicleConfigs = {
 
 export default function GadiRateCalculator() {
   const [activeTab, setActiveTab] = useState('35MT');
+  const [globalBasic, setGlobalBasic] = useState(39211);
 
   const [formData, setFormData] = useState(vehicleConfigs);
 
@@ -83,7 +78,7 @@ export default function GadiRateCalculator() {
 
   const calculations = useMemo(() => {
     const taxableAmount =
-      currentFields.basic - currentFields.discount + currentFields.loading;
+      globalBasic - currentFields.discount + currentFields.loading;
 
     const gstAmount = taxableAmount * (currentFields.gst / 100);
 
@@ -138,13 +133,11 @@ export default function GadiRateCalculator() {
       landingCost,
       finalRate06MT,
     };
-  }, [activeTab, currentFields, currentFieldsSell?.paper]);
+  }, [activeTab, currentFields, currentFieldsSell?.paper, globalBasic]);
 
   const calculationsSell = useMemo(() => {
     const taxableAmount =
-      currentFields.basic -
-      currentFieldsSell.discount +
-      currentFieldsSell.loading;
+      globalBasic - currentFieldsSell.discount + currentFieldsSell.loading;
 
     const gstAmount = taxableAmount * (currentFieldsSell.gst / 100);
     let totalWithGST;
@@ -197,7 +190,7 @@ export default function GadiRateCalculator() {
       landingCost,
       finalRate06MT,
     };
-  }, [activeTab, currentFields.basic, currentFieldsSell]);
+  }, [activeTab, currentFieldsSell, globalBasic]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({
@@ -350,7 +343,20 @@ export default function GadiRateCalculator() {
         </h3>
 
         <div className="form-container">
-          {Object.entries(currentFields).map(([field, value]) => (
+          <div key={'basic'} className="form-inputs">
+            <label className="labels">{formatLabel('basic')}</label>
+            <input
+              type="number"
+              value={globalBasic}
+              onChange={(e) => {
+                setGlobalBasic(parseFloat(e.target.value));
+                updateField('basic', e.target.value);
+              }}
+              className="input"
+            />
+          </div>
+          {/*  */}
+          {Object.entries(currentFields)?.map(([field, value]) => (
             <div key={field} className="form-inputs">
               <label className="labels">{formatLabel(field)}</label>
               <input
@@ -398,33 +404,29 @@ export default function GadiRateCalculator() {
             `| Final Rate/kg ₹ ${(calculationsSell.finalRate06MT / 1000).toFixed(2)}`}
         </h3>
         <div className="form-container">
-          {Object.entries(currentFields)
-            ?.splice(0, 1)
-            ?.map(([field, value]) => (
-              <div key={field} className="form-inputs">
-                <label className="labels">{formatLabel(field)}</label>
-                <input
-                  type="number"
-                  value={value}
-                  onChange={(e) => updateField(field, e.target.value)}
-                  className="input"
-                  // style={styles.input}
-                />
-              </div>
-            ))}
-          {Object.entries(currentFieldsSell)
-            ?.splice(1)
-            ?.map(([fieldsSell, value]) => (
-              <div key={fieldsSell} className="form-inputs">
-                <label className="labels">{formatLabel(fieldsSell)}</label>
-                <input
-                  type="number"
-                  value={value}
-                  onChange={(e) => updateFieldSell(fieldsSell, e.target.value)}
-                  className="input"
-                />
-              </div>
-            ))}
+          <div key={'basic'} className="form-inputs">
+            <label className="labels">{formatLabel('basic')}</label>
+            <input
+              type="number"
+              value={globalBasic}
+              onChange={(e) => {
+                setGlobalBasic(parseFloat(e.target.value));
+                updateField('basic', e.target.value);
+              }}
+              className="input"
+            />
+          </div>
+          {Object.entries(currentFieldsSell)?.map(([fieldsSell, value]) => (
+            <div key={fieldsSell} className="form-inputs">
+              <label className="labels">{formatLabel(fieldsSell)}</label>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) => updateFieldSell(fieldsSell, e.target.value)}
+                className="input"
+              />
+            </div>
+          ))}
         </div>
       </div>
       {/* Sell */}
