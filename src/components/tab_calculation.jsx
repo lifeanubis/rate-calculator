@@ -3,21 +3,38 @@ import { useMemo, useState } from 'react';
 const vehicleConfigs = {
   '35MT': {
     fields: {
-      basic: 37811,
+      basic: 39211,
       discount: 3000,
       loading: 5880,
       gst: 18,
-      tokan: 500,
+      token: 500,
+    },
+    fieldsSell: {
+      basic: 39211,
+      discount: 2500,
+      loading: 5880,
+      gst: 18,
+      token: 1000,
     },
   },
 
   '15MT': {
     fields: {
-      basic: 37811,
+      basic: 39211,
       discount: 3000,
       loading: 5880,
       gst: 18,
       paper: 500,
+      bhada: 2500,
+      shortage: 300,
+      margin: 0,
+    },
+    fieldsSell: {
+      basic: 39211,
+      discount: 2500,
+      loading: 5880,
+      gst: 18,
+      paper: 1000,
       bhada: 2500,
       shortage: 300,
       margin: 300,
@@ -26,8 +43,21 @@ const vehicleConfigs = {
 
   '6MT': {
     fields: {
-      basic: 37811,
+      basic: 40711,
       discount: 3000,
+      loading: 5880,
+      gst: 18,
+      paper: 500,
+      bhada: 2600,
+      unloading: 200,
+      shortage: 300,
+      hammali: 200,
+      extraBhada: 700,
+      margin: 0,
+    },
+    fieldsSell: {
+      basic: 40711,
+      discount: 2500,
       loading: 5880,
       gst: 18,
       paper: 500,
@@ -47,6 +77,7 @@ export default function GadiRateCalculator() {
   const [formData, setFormData] = useState(vehicleConfigs);
 
   const currentFields = formData[activeTab].fields;
+  const currentFieldsSell = formData[activeTab].fieldsSell;
 
   const calculations = useMemo(() => {
     const taxableAmount =
@@ -54,9 +85,38 @@ export default function GadiRateCalculator() {
 
     const gstAmount = taxableAmount * (currentFields.gst / 100);
 
-    const totalWithGST = taxableAmount + gstAmount;
+    let totalWithGST;
+    let netRate;
+    let landingCost;
+    let finalRate06MT;
+    // = taxableAmount + gstAmount + currentFields.token;
+
+    if (activeTab === '35MT') {
+      totalWithGST = taxableAmount + gstAmount + currentFields.token;
+    } else if (activeTab === '15MT') {
+      totalWithGST = taxableAmount + gstAmount + currentFields?.paper;
+      netRate =
+        totalWithGST +
+        currentFields?.bhada +
+        currentFields?.shortage +
+        currentFields?.margin;
+    } else {
+      totalWithGST = taxableAmount + gstAmount + currentFieldsSell?.paper;
+      landingCost =
+        totalWithGST +
+        currentFields?.bhada +
+        currentFields?.unloading +
+        currentFields?.shortage;
+      finalRate06MT =
+        landingCost +
+        currentFields?.hammali +
+        currentFields?.extraBhada +
+        currentFields?.margin;
+    }
 
     let finalRate = totalWithGST;
+
+    let totalPurchase = totalWithGST;
 
     Object.entries(currentFields).forEach(([key, value]) => {
       if (!['basic', 'discount', 'loading', 'gst'].includes(key)) {
@@ -64,7 +124,7 @@ export default function GadiRateCalculator() {
       }
     });
 
-    const perKgRate = finalRate / 1000;
+    const perKgRate = netRate / 1000;
 
     return {
       taxableAmount,
@@ -72,8 +132,75 @@ export default function GadiRateCalculator() {
       totalWithGST,
       finalRate,
       perKgRate,
+      totalPurchase,
+      netRate,
+      landingCost,
+      finalRate06MT,
     };
-  }, [currentFields]);
+  }, [activeTab, currentFields, currentFieldsSell?.paper]);
+
+  const calculationsSell = useMemo(() => {
+    const taxableAmount =
+      currentFieldsSell.basic -
+      currentFieldsSell.discount +
+      currentFieldsSell.loading;
+
+    const gstAmount = taxableAmount * (currentFieldsSell.gst / 100);
+    let totalWithGST;
+    let netRate;
+    let landingCost;
+    let finalRate06MT;
+    if (activeTab === '35MT') {
+      totalWithGST = taxableAmount + gstAmount + currentFieldsSell.token;
+    } else if (activeTab === '15MT') {
+      totalWithGST = taxableAmount + gstAmount + currentFieldsSell?.paper;
+      netRate =
+        totalWithGST +
+        currentFieldsSell?.bhada +
+        currentFieldsSell?.shortage +
+        currentFieldsSell?.margin;
+    } else {
+      totalWithGST = taxableAmount + gstAmount + currentFieldsSell?.paper;
+      landingCost =
+        totalWithGST +
+        currentFieldsSell?.bhada +
+        currentFieldsSell?.unloading +
+        currentFieldsSell?.shortage;
+      finalRate06MT =
+        landingCost +
+        currentFieldsSell?.hammali +
+        currentFieldsSell?.extraBhada +
+        currentFieldsSell?.margin;
+    }
+
+    let finalRate = totalWithGST;
+
+    let totalSell = totalWithGST;
+
+    Object.entries(currentFieldsSell).forEach(([key, value]) => {
+      if (!['basic', 'discount', 'loading', 'gst'].includes(key)) {
+        finalRate += Number(value);
+      }
+    });
+
+    const perKgRate = netRate / 1000;
+
+    return {
+      taxableAmount,
+      gstAmount,
+      totalWithGST,
+      finalRate,
+      perKgRate,
+      totalSell,
+      netRate,
+      landingCost,
+      finalRate06MT,
+    };
+  }, [activeTab, currentFieldsSell]);
+
+  // 15 MT
+
+  // 15 MT
 
   const updateField = (field, value) => {
     setFormData((prev) => ({
@@ -82,14 +209,26 @@ export default function GadiRateCalculator() {
         ...prev[activeTab],
         fields: {
           ...prev[activeTab].fields,
-          [field]: Number(value),
+          [field]: parseFloat(value),
+        },
+      },
+    }));
+  };
+  const updateFieldSell = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        fieldsSell: {
+          ...prev[activeTab].fieldsSell,
+          [field]: parseFloat(value),
         },
       },
     }));
   };
 
   return (
-    <div style={styles.container}>
+    <div className="container">
       <h1>Gadi Rate Calculator</h1>
 
       {/* Tabs */}
@@ -108,28 +247,113 @@ export default function GadiRateCalculator() {
           </button>
         ))}
       </div>
-
+      <hr />
       {/* Inputs */}
-      <div style={styles.form}>
-        {Object.entries(currentFields).map(([field, value]) => (
-          <div key={field} style={styles.inputGroup}>
-            <label style={styles.label}>{formatLabel(field)}</label>
+      {/* PURCHASE */}
+      <h1>Purchase</h1>
 
-            <input
-              type="number"
-              value={value}
-              onChange={(e) => updateField(field, e.target.value)}
-              style={styles.input}
-            />
-          </div>
-        ))}
+      <div>
+        <h1>
+          {activeTab === '35MT' &&
+            `Total Purchase ₹ ₹ ${calculations.totalPurchase.toFixed(2)}`}
+        </h1>
+        <h1>
+          {activeTab === '6MT' &&
+            `Final Rate ₹ ${calculations.finalRate06MT.toFixed(2)}`}
+        </h1>
+
+        <h2>
+          {activeTab === '15MT' &&
+            ` | Net rate ₹ ${calculations.netRate.toFixed(2)}`}
+        </h2>
+
+        <h2>
+          {activeTab === '15MT' &&
+            ` | Per KG Rate ₹ ${calculations.perKgRate.toFixed(2)}`}
+        </h2>
+
+        <h2>
+          {activeTab === '6MT' &&
+            ` | Landing Cost ₹ ${calculations.landingCost.toFixed(2)}`}
+        </h2>
+        <h2>
+          {activeTab === '6MT' &&
+            `| Final Rate/kg ₹ ${(calculations.finalRate06MT / 1000).toFixed(2)}`}
+        </h2>
+
+        <div className="form-container">
+          {Object.entries(currentFields).map(([field, value]) => (
+            <div key={field} className="form-inputs">
+              <label className="labels">{formatLabel(field)}</label>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) => updateField(field, e.target.value)}
+                className="input"
+              />
+            </div>
+          ))}
+        </div>
       </div>
+      {/* PURCHASE */}
+
+      {/* Sell */}
+      <div>
+        <h1>
+          {activeTab === '35MT' &&
+            `Total Sell ₹ ${calculationsSell.totalSell.toFixed(2)}`}
+        </h1>
+        <h2>
+          {activeTab === '15MT' &&
+            ` | Net rate ₹ ${calculationsSell.netRate.toFixed(2)}`}
+        </h2>
+
+        <h2>
+          {activeTab === '15MT' &&
+            ` | Per KG Rate ₹ ${calculationsSell.perKgRate.toFixed(2)}`}
+        </h2>
+        <hr />
+        <h1>Sell</h1>
+        <h1>
+          {activeTab === '6MT' &&
+            ` | Landing Cost ₹ ${calculationsSell.landingCost.toFixed(2)}`}
+        </h1>
+
+        <h2>
+          {activeTab === '6MT' &&
+            ` | Landing Cost ₹ ${calculationsSell.finalRate06MT.toFixed(2)}`}
+        </h2>
+
+        <h2>
+          {activeTab === '6MT' &&
+            `| Final Rate/kg ₹ ${(calculationsSell.finalRate06MT / 1000).toFixed(2)}`}
+        </h2>
+        <div className="form-container">
+          {Object.entries(currentFieldsSell).map(([fieldsSell, value]) => (
+            <div key={fieldsSell} className="form-inputs">
+              <label className="labels">{formatLabel(fieldsSell)}</label>
+              <input
+                type="number"
+                value={value}
+                onChange={(e) => updateFieldSell(fieldsSell, e.target.value)}
+                className="input"
+                // style={styles.input}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Sell */}
+      <h1>
+        {activeTab === '35MT' &&
+          `Profit ₹ ${(calculationsSell.totalSell - calculations.totalPurchase).toFixed(2)}`}
+      </h1>
 
       {/* Results */}
       <div style={styles.results}>
         <h2>Results</h2>
 
-        <ResultRow label="Taxable Amount" value={calculations.taxableAmount} />
+        {/* <ResultRow label="Taxable Amount" value={calculations.taxableAmount} />
 
         <ResultRow label="GST Amount" value={calculations.gstAmount} />
 
@@ -137,7 +361,7 @@ export default function GadiRateCalculator() {
 
         <ResultRow label="Final Rate" value={calculations.finalRate} />
 
-        <ResultRow label="Per KG Rate" value={calculations.perKgRate} />
+        <ResultRow label="Per KG Rate" value={calculations.perKgRate} /> */}
       </div>
     </div>
   );
@@ -159,15 +383,6 @@ function formatLabel(label) {
 }
 
 const styles = {
-  container: {
-    maxWidth: '700px',
-    margin: '40px auto',
-    padding: '20px',
-    fontFamily: 'Arial',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-  },
-
   tabs: {
     display: 'flex',
     gap: '10px',
@@ -180,41 +395,5 @@ const styles = {
     borderRadius: '6px',
     cursor: 'pointer',
     fontWeight: 'bold',
-  },
-
-  form: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '15px',
-  },
-
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-
-  label: {
-    marginBottom: '5px',
-    fontWeight: '600',
-  },
-
-  input: {
-    padding: '10px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-  },
-
-  results: {
-    marginTop: '30px',
-    padding: '20px',
-    background: '#f7f7f7',
-    borderRadius: '10px',
-  },
-
-  resultRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '10px',
-    fontSize: '16px',
   },
 };
